@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import agent from '../../agent';
 import { TextField } from '@material-ui/core';
 
-const mapStateToProps = state => ({ ...state.home });
+const mapStateToProps = state => ({ ...state.points });
 
 
 const mapDispatchToProps = dispatch => ({
@@ -25,9 +25,9 @@ const mapDispatchToProps = dispatch => ({
 class FormComponent extends Component {
     constructor() {
         super();
-        this.clickX = ev => this.props.onClickX(ev.target.value);
-        this.changeY = ev => this.props.onChangeY(ev.target.value);
-        this.clickR = ev => this.props.onClickR(ev.target.value);
+        this.clickX = ev => this.props.onClickX(ev.currentTarget.value);
+        this.changeY = ev => this.props.onChangeY(ev.currentTarget.value);
+        this.clickR = ev => this.props.onClickR(ev.currentTarget.value);
 
         this.submitForm = (x, y, r) => ev => {
             ev.preventDefault();

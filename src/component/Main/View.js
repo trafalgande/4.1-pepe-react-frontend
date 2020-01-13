@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import PointsList from "../PointsList";
 
 const mapStateToProps = state => ({
-    points: state.home.points,
+    points: state.points.points,
     currentUser: state.common.currentUser
 });
 

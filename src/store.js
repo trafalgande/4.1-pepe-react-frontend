@@ -2,13 +2,13 @@ import { applyMiddleware, createStore, combineReducers } from 'redux';
 import {authMiddleware, pointsMiddleware, promiseMiddleware} from './middleware';
 import auth from './reducers/auth';
 import common from './reducers/common';
-import home from './reducers/home';
+import points from './reducers/points';
 
 
 const reducers = combineReducers({
     auth,
     common,
-    home
+    points
 });
 
 const middleware = applyMiddleware(promiseMiddleware, authMiddleware, pointsMiddleware);

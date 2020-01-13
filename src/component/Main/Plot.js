@@ -4,10 +4,9 @@ import agent from "../../agent";
 import {POINT_ADDED, POINTS_RECALCULATED} from "../../actions/types";
 
 const mapStateToProps = state => ({
-    points: state.home.points_r,
-    all: state.home,
-    rc: state.home.rc,
-    current_r: state.home.current_r
+    points: state.points.points,
+    rc: state.points.rc,
+    current_r: state.points.current_r
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -23,10 +22,8 @@ const mapDispatchToProps = dispatch => ({
 
 class Plot extends Component {
 
-    constructor(props) {
-        super(props);
-        this.addPointFromCanvas = this.addPointFromCanvas.bind(this);
-    }
+    addPointFromCanvas = this.addPointFromCanvas.bind(this);
+
     
     componentWillMount() {
         this.props.recalculatedPoints(1);
@@ -55,29 +52,54 @@ class Plot extends Component {
         }
     }
     drawPoint(point) {
-        let canvas = document.getElementById("canvas");
-        let ctx = canvas.getContext("2d");
-        let rect = canvas.getBoundingClientRect();
-        let offset = (rect.width - canvas.width) / 2 + 1;
-        let x = this.event.clientX - rect.left - offset;
-        let y = this.event.clientY - rect.top - offset;
+        let x = point.x, y = point.y, result = point.result, r = this.props.rc;
+        let ctx = this.canvas.getContext("2d");
 
-        let result = point.result;
         ctx.beginPath();
-        ctx.rect(Math.round((108 + (x / 5) * 80)), Math.round((108 - (y / 5) * 80)), 4, 4);
+        ctx.rect(Math.round((108 + (x / r) * 80)), Math.round((108 - (y / r) * 80)), 4, 4);
         ctx.fillStyle = "#e11751";
-        if (result) { 
+        if (r > 0) {
+        if (x >= 0 && y <= 0 && (x * x + y * y) <= (r / 2 * r / 2) ||
+            x >= -r && x <= 0 && y >= -r / 2 && y <= 0  ||
+            x <= 0 && y >= 0 && y <= x / 2 + r / 2
+        ) { 
             ctx.fillStyle = "#13e158";
         } 
+    } else {
+        if (x <= 0 && y <= 0 && (x * x + y * y) <= (r / 2 * r / 2) ||
+            x <= r && x >= 0 && y >= -r / 2 && y <= 0  ||
+            x >= 0 && y >= 0 && y <= - x / 2 + r / 2
+        ) { 
+            ctx.fillStyle = "#13e158";
+        } 
+    } 
         ctx.closePath();
         ctx.fill();
     }
 
-    plotW(r) {
-        let ctx = document.getElementById("canvas").getContext("2d");
+    drawPointFromEvent(event) {
         let canvas = document.getElementById("canvas");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+        let ctx = canvas.getContext("2d");
+        let rect = canvas.getBoundingClientRect();
+        let offset = (rect.width - canvas.width) / 2 + 1;
+        let x = event.clientX - rect.left - offset;
+        let y = event.clientY - rect.top - offset;
+        ctx.beginPath();
+        ctx.rect(Math.round((108 + (x / 5) * 80)), Math.round((108 - (y / 5) * 80)), 4, 4);
+        ctx.fillStyle = "#e11751";
+        // if (result) { 
+        //     ctx.fillStyle = "#13e158";
+        // } 
+        ctx.closePath();
+        ctx.fill();    
+    }
+
+    plotW(r) {
+
+        let ctx = this.canvas.getContext("2d");
+        // let canvas = document.getElementById("canvas");
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (r != 0) {    
         ctx.beginPath();
         ctx.fillStyle = "#7ca1ff";
         ctx.rect(110, 110, -80, 40);
@@ -98,6 +120,35 @@ class Plot extends Component {
         ctx.closePath();
         ctx.fill();
     
+    } else {
+        let base_image = new Image();
+        base_image.src = 'resources/img/base.jpg';
+        base_image.onload = function(){
+            ctx.drawImage(base_image, 0, 0);
+        }
+    }
+    if (r < 0) {
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.beginPath();
+        ctx.fillStyle = "#7ca1ff";
+        ctx.rect(190, 110, -80, 40);
+        ctx.closePath();
+        ctx.fill();
+    
+        ctx.beginPath();
+        ctx.moveTo(110, 110);
+        ctx.arc(110, 110, 40, Math.PI, Math.PI / 2, true);
+        ctx.closePath();
+        ctx.fill();
+    
+        ctx.beginPath();
+        ctx.moveTo(190, 110);
+        ctx.lineTo(110, 70);
+        ctx.lineTo(110, 110);
+        ctx.lineTo(190, 110);
+        ctx.closePath();
+        ctx.fill();
+    }
         // axis
         ctx.beginPath();
         ctx.moveTo(110, 0);
@@ -116,16 +167,15 @@ class Plot extends Component {
         ctx.moveTo(230, 110);
         ctx.lineTo(225, 107);
     
-    
         // x lines
         ctx.fillStyle = "#121164";
         ctx.moveTo(30, 115);
         ctx.lineTo(30, 105);
-        ctx.fillText("-" + r, 26, 125);
+        ctx.fillText(-r, 26, 125);
     
         ctx.moveTo(70, 115);
         ctx.lineTo(70, 105);
-        ctx.fillText("-" + r / 2, 60, 125);
+        ctx.fillText(-r / 2, 60, 125);
     
         ctx.moveTo(150, 115);
         ctx.lineTo(150, 105);
@@ -138,11 +188,11 @@ class Plot extends Component {
         // y lines
         ctx.moveTo(115, 150);
         ctx.lineTo(105, 150);
-        ctx.fillText("-" + r / 2, 117, 153);
+        ctx.fillText(-r / 2, 117, 153);
     
         ctx.moveTo(115, 190);
         ctx.lineTo(105, 190);
-        ctx.fillText("-" + r, 117, 193);
+        ctx.fillText(-r, 117, 193);
     
         ctx.moveTo(115, 70);
         ctx.lineTo(105, 70);
@@ -155,15 +205,11 @@ class Plot extends Component {
         ctx.fillText("y", 115, 6);
         ctx.fillText("x", 224, 120);
         ctx.stroke();
-    }
-
-    
-
-    
+}
     addPointFromCanvas(event) {
-        let canvas = document.getElementById("canvas");
-        let rect = canvas.getBoundingClientRect();
-        let offset = (rect.width - canvas.width) / 2 + 1;
+        let ctx = this.canvas.getContext("2d");
+        let rect = this.canvas.getBoundingClientRect();
+        let offset = (rect.width - this.canvas.width) / 2 + 1;
         let x = event.clientX - rect.left - offset;
         let y = event.clientY - rect.top - offset;
         let r;
@@ -173,10 +219,11 @@ class Plot extends Component {
 
         let xCalculated = (x - 108) / 80 * r;
         let yCalculated = (108 - y) / 80 * r;
+        console.log(this.props.points)
+
 
         this.props.onCanvasClick(xCalculated.toFixed(3), yCalculated.toFixed(3), this.props.rc || 1);
     }
-    
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Plot);
